@@ -1,0 +1,770 @@
+<title>Аружан без камеры</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
+
+<style>
+/* Тёмный павильон. Тему намеренно не переключаем — под видео нужен один фон. */
+:root{
+  --bg:#120C12;
+  --bg-2:#1E151E;
+  --panel:rgba(243,232,239,.055);
+  --text:#F4EAF0;
+  --text-dim:#A2939E;
+  --hair:#3A2C39;
+  --blush:#F2846B;
+  --teal:#7FB8AE;
+
+  --f-display:'Playfair Display',Georgia,serif;
+  --f-body:'Manrope','Segoe UI',sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,monospace;
+
+  --step-0:clamp(.95rem,.9rem + .2vw,1.05rem);
+  --step-1:clamp(1.1rem,1rem + .5vw,1.3rem);
+  --step-2:clamp(1.7rem,1.3rem + 1.8vw,2.9rem);
+  --step-3:clamp(2.3rem,1.5rem + 3.6vw,4.4rem);
+  --step-4:clamp(3rem,1.6rem + 6vw,7rem);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--f-body); font-size:var(--step-0); line-height:1.68;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+h1,h2,h3{font-family:var(--f-display); margin:0; line-height:1.05; letter-spacing:-.015em; text-wrap:balance; font-weight:700}
+a{color:inherit}
+img,video{display:block; max-width:100%}
+:focus-visible{outline:2px solid var(--blush); outline-offset:3px}
+
+.wrap{width:min(1200px,92vw); margin-inline:auto}
+.mono{font-family:var(--f-mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim)}
+section,header{position:relative; z-index:1}
+
+/* Плёночное зерно поверх всего */
+#grain{position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.11; mix-blend-mode:overlay}
+
+/* Кнопка звука */
+.snd{
+  position:fixed; z-index:70; top:1rem; right:1.1rem; display:flex; align-items:center; gap:.5rem;
+  padding:.55rem 1rem; border-radius:99px; cursor:pointer;
+  border:1px solid var(--hair); background:rgba(18,12,18,.8); backdrop-filter:blur(8px); color:var(--text);
+  font-family:var(--f-mono); font-size:.62rem; letter-spacing:.13em; text-transform:uppercase;
+}
+.snd:hover{border-color:var(--blush); color:var(--blush)}
+.snd i{width:7px; height:7px; border-radius:50%; background:var(--text-dim)}
+.snd[aria-pressed="true"] i{background:var(--blush); box-shadow:0 0 0 4px rgba(242,132,107,.18)}
+
+/* Приёмы: шторка «схема → кадр» */
+.craft{padding:clamp(3.5rem,8vw,6rem) 0; border-top:1px solid var(--hair)}
+.craft-head{display:flex; justify-content:space-between; gap:1.2rem; flex-wrap:wrap; align-items:baseline; margin-bottom:.8rem}
+.craft h2{font-size:var(--step-2)}
+.craft h2 em{font-style:italic; color:var(--blush)}
+.craft .lead{color:var(--text-dim); max-width:56ch; margin:0 0 clamp(1.8rem,4vw,2.8rem)}
+.craft-grid{display:grid; gap:clamp(1.2rem,2.6vw,1.9rem); grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.craft-card h3{font-family:var(--f-body); font-weight:700; font-size:1.02rem; letter-spacing:0; margin:.9rem 0 .35rem}
+.craft-card p{margin:0; color:var(--text-dim); font-size:.9rem; max-width:34ch}
+
+.reveal{position:relative; margin:0; aspect-ratio:3/4; overflow:hidden; border-radius:12px; border:1px solid var(--hair); background:var(--bg-2); --p:52}
+.reveal .after{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.reveal .before{position:absolute; inset:0; clip-path:inset(0 calc(100% - var(--p) * 1%) 0 0); background:#0E0A0E}
+.reveal .before svg{width:100%; height:100%; display:block}
+.reveal .tag{
+  position:absolute; z-index:3; left:.6rem; top:.6rem; pointer-events:none;
+  font-family:var(--f-mono); font-size:.52rem; letter-spacing:.12em; text-transform:uppercase;
+  padding:.2rem .45rem; border-radius:4px; border:1px solid var(--hair); background:rgba(14,10,14,.8); color:var(--text-dim);
+}
+.reveal .tag.res{left:auto; right:.6rem; color:var(--blush); border-color:rgba(242,132,107,.4)}
+.reveal .bar{position:absolute; z-index:4; top:0; bottom:0; width:2px; background:var(--blush); left:calc(var(--p) * 1%); pointer-events:none; box-shadow:0 0 18px rgba(242,132,107,.5)}
+.reveal .bar::after{
+  content:"↔"; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:30px; height:30px; display:grid; place-items:center; border-radius:50%;
+  background:var(--blush); color:#20100C; font-size:.95rem; font-weight:700;
+  box-shadow:0 4px 14px rgba(0,0,0,.5);
+}
+.reveal input{position:absolute; z-index:5; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:ew-resize}
+
+/* Бесплатная раскадровка */
+.offer{border-top:1px solid var(--hair); padding:clamp(3rem,7vw,5rem) 0}
+.offer-in{display:grid; gap:clamp(1.4rem,4vw,3rem); grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center}
+.offer h2{font-size:var(--step-2); max-width:18ch}
+.offer h2 em{font-style:italic; color:var(--blush)}
+.offer p{color:var(--text-dim); max-width:46ch}
+.steps{display:grid; gap:.1rem; border-top:1px solid var(--hair)}
+.step{display:grid; grid-template-columns:2.4rem 1fr; gap:1rem; padding:.9rem 0; border-bottom:1px solid var(--hair)}
+.step b{font-family:var(--f-mono); font-size:.68rem; font-weight:700; color:var(--blush); padding-top:.25rem}
+.step span{color:var(--text-dim)}
+.step span strong{color:var(--text); font-weight:500}
+
+/* ── Первый экран: павильон видео-фоном ───────────────────────────────── */
+.hero{position:relative; min-height:88svh; display:flex; align-items:flex-end; padding:clamp(3.5rem,8vw,5rem) 0 clamp(2rem,5vw,3.2rem); overflow:hidden}
+.hero-bg{position:absolute; inset:0; z-index:0}
+.hero-bg video,.hero-bg img{width:100%; height:100%; object-fit:cover; filter:saturate(105%)}
+.hero-bg::after{
+  content:""; position:absolute; inset:0;
+  background:
+    linear-gradient(to top, var(--bg) 2%, rgba(18,12,18,.72) 42%, rgba(18,12,18,.5)),
+    radial-gradient(90% 70% at 70% 30%, transparent 30%, rgba(18,12,18,.75) 100%);
+}
+.hero .wrap{position:relative; z-index:1}
+.hero-grid{display:grid; gap:clamp(1.6rem,4vw,3.5rem); grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr); align-items:end}
+.portrait{margin:0; width:min(100%,250px); margin-left:auto; transform:rotate(-1.8deg)}
+.portrait img{width:100%; height:auto; aspect-ratio:620/795; object-fit:cover; border-radius:14px; border:1px solid var(--hair); box-shadow:0 30px 70px rgba(0,0,0,.65)}
+.portrait figcaption{display:flex; justify-content:space-between; gap:.6rem; margin-top:.7rem; transform:rotate(1.8deg)}
+.hero h1{font-size:var(--step-4); line-height:.95; max-width:11ch}
+.hero h1 em{font-style:italic; color:var(--blush)}
+.hero .sub{margin:1.5rem 0 2.2rem; color:var(--text-dim); font-size:var(--step-1); max-width:46ch}
+.meta{display:flex; gap:2.4rem; flex-wrap:wrap; border-top:1px solid var(--hair); padding-top:1.2rem; max-width:40rem}
+.meta .big{display:block; font-family:var(--f-display); font-size:1.7rem}
+.cue{display:flex; align-items:center; gap:.7rem; margin-top:2.4rem}
+.cue i{width:1px; height:38px; background:linear-gradient(var(--blush),transparent)}
+
+/* ── Хлопушка: перематывается скроллом ────────────────────────────────── */
+.clap-stage{height:340vh}
+.clap-pin{position:sticky; top:0; height:100svh; overflow:hidden; display:grid; place-items:center}
+.clap-pin video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(1px) saturate(108%)}
+.clap-pin::after{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(85% 70% at 50% 50%, rgba(18,12,18,.28) 20%, rgba(18,12,18,.82) 100%);
+}
+.clap-words{position:relative; z-index:2; text-align:center; padding:0 6vw}
+.clap-words .line{position:absolute; inset:0; display:grid; place-items:center; opacity:0}
+.clap-words .line:first-child{position:relative; opacity:1}
+.clap-words h2{font-size:var(--step-3); text-wrap:balance}
+.clap-words h2 em{font-style:italic; color:var(--blush)}
+.clap-words p{margin:.8rem auto 0; max-width:40ch; color:var(--text-dim)}
+
+/* ── Контактный лист ──────────────────────────────────────────────────── */
+.stage{height:300vh}
+.pin{position:sticky; top:0; min-height:100svh; display:flex; flex-direction:column; justify-content:center; gap:clamp(1.1rem,2.6vw,1.8rem); padding:clamp(3.2rem,7vw,4.4rem) 0 clamp(1.4rem,3vw,2.2rem)}
+.lede{text-align:center}
+.lede h2{font-size:var(--step-2)}
+.lede h2 em{font-style:italic; color:var(--blush)}
+.lede p{margin:.5rem auto 0; max-width:50ch; color:var(--text-dim); font-size:.92rem}
+
+/* Два ряда вместо трёх — кадры влезают в экран крупнее */
+.sheet{
+  --ch:clamp(150px,34svh,300px);
+  display:grid; gap:clamp(.5rem,1.2vw,.95rem);
+  grid-template-columns:repeat(6,calc(var(--ch) * 9 / 16));
+  justify-content:center;
+}
+.shot{
+  position:relative; will-change:transform; margin:0; cursor:pointer;
+  background:var(--bg-2); padding:5px; border:1px solid var(--hair); border-radius:10px;
+  box-shadow:0 18px 40px rgba(0,0,0,.5);
+}
+.shot .frame{position:relative; overflow:hidden; border-radius:6px; height:var(--ch); background:var(--bg-2)}
+.shot video,.shot img{width:100%; height:100%; object-fit:cover}
+.shot .num{position:absolute; z-index:3; left:11px; top:11px; font-family:var(--f-mono); font-size:.54rem; font-weight:700; letter-spacing:.1em; background:rgba(18,12,18,.75); border:1px solid var(--hair); padding:.12rem .36rem; border-radius:4px}
+.shot figcaption{display:flex; justify-content:space-between; gap:.5rem; font-family:var(--f-mono); font-size:.53rem; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); padding:.42rem .15rem .02rem}
+.sheet-foot{display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; border-top:1px solid var(--hair); padding-top:.85rem}
+
+/* ── Крупным планом ───────────────────────────────────────────────────── */
+.works{padding:clamp(3rem,7vw,5rem) 0 0}
+.works-head{border-top:1px solid var(--hair); padding-top:1.2rem; margin-bottom:clamp(1.5rem,4vw,3rem); display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap}
+.chapter{display:grid; gap:clamp(1.6rem,4vw,3.5rem); grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); align-items:start; padding-bottom:clamp(3rem,8vw,7rem)}
+.chapter.wide{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}
+.stick{position:sticky; top:12vh; perspective:1200px; width:min(100%,300px)}
+.chapter.wide .stick{width:100%}
+.stick .frame{overflow:hidden; border:1px solid var(--hair); border-radius:16px; box-shadow:0 26px 60px rgba(0,0,0,.55); will-change:transform; background:var(--bg-2)}
+.stick video{width:100%; height:auto}
+.stick .cap{display:flex; justify-content:space-between; gap:1rem; margin-top:.8rem}
+.chapter-body{padding-top:clamp(0rem,3vw,2rem)}
+.chapter-body .num{display:block; font-family:var(--f-mono); font-size:.66rem; letter-spacing:.18em; color:var(--blush); margin-bottom:1rem}
+.chapter-body h2{font-size:var(--step-2); margin-bottom:1.1rem}
+.chapter-body p{color:var(--text-dim); max-width:52ch; margin:0 0 1.1rem}
+.chapter-body p strong{color:var(--text); font-weight:500}
+.quote{border-left:2px solid var(--blush); padding-left:1.1rem; font-family:var(--f-display); font-style:italic; font-size:var(--step-1); color:var(--text)}
+.facts{margin-top:1.8rem; border-top:1px solid var(--hair)}
+.fact{display:grid; grid-template-columns:minmax(0,9rem) minmax(0,1fr); gap:1rem; padding:.8rem 0; border-bottom:1px solid var(--hair)}
+.fact dt{font-family:var(--f-mono); font-size:.62rem; letter-spacing:.13em; text-transform:uppercase; color:var(--teal); padding-top:.2rem}
+.fact dd{margin:0}
+.fact dd.todo{color:var(--text-dim); font-style:italic}
+
+/* ── Контакты ─────────────────────────────────────────────────────────── */
+.outro{position:relative; border-top:1px solid var(--hair); padding:clamp(3.5rem,8vw,6.5rem) 0 clamp(2rem,4vw,3rem); overflow:hidden}
+.outro-bg{position:absolute; inset:0; z-index:0; opacity:.5}
+.outro-bg video,.outro-bg img{width:100%; height:100%; object-fit:cover}
+.outro-bg::after{content:""; position:absolute; inset:0; background:linear-gradient(to right, var(--bg) 20%, rgba(18,12,18,.6))}
+.outro .wrap{position:relative; z-index:1}
+.outro h2{font-size:var(--step-3); max-width:15ch}
+.outro h2 em{font-style:italic; color:var(--blush)}
+.outro p{color:var(--text-dim); max-width:48ch; margin:1.2rem 0 2.2rem; font-size:var(--step-1)}
+.links{display:flex; gap:.7rem; flex-wrap:wrap}
+.links a{font-family:var(--f-mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; padding:.9rem 1.6rem; border:1px solid var(--hair); border-radius:99px; text-decoration:none; background:var(--panel); backdrop-filter:blur(6px); transition:background .2s, border-color .2s, color .2s}
+.links a:hover{border-color:var(--blush); color:var(--blush)}
+.links a.primary{background:var(--blush); border-color:var(--blush); color:#20100C; font-weight:700}
+.links a.primary:hover{background:#F79B85; color:#20100C}
+footer{position:relative; z-index:1; padding-bottom:3rem}
+
+/* ── Просмотр ролика ──────────────────────────────────────────────────── */
+.box{position:fixed; inset:0; z-index:80; display:none; place-items:center; padding:clamp(1rem,4vw,3rem); background:rgba(10,6,10,.93); backdrop-filter:blur(10px)}
+.box[open]{display:grid}
+.box video{max-height:82svh; width:auto; border-radius:12px; border:1px solid var(--hair); background:#000}
+.box .bar{display:flex; justify-content:space-between; align-items:baseline; gap:1rem; margin-bottom:.8rem; flex-wrap:wrap}
+.box h3{font-size:var(--step-1); font-family:var(--f-body); font-weight:700}
+.box .close{position:fixed; top:1rem; right:1.2rem; background:none; border:1px solid var(--hair); color:var(--text); border-radius:99px; padding:.55rem 1.1rem; cursor:pointer; font-family:var(--f-mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase}
+.box .close:hover{border-color:var(--blush); color:var(--blush)}
+.box .note{margin:.7rem 0 0; color:var(--text-dim); font-family:var(--f-mono); font-size:.6rem; letter-spacing:.1em; text-transform:uppercase}
+
+@media (max-width:980px){
+  .sheet{--ch:clamp(120px,23svh,210px); grid-template-columns:repeat(4,calc(var(--ch) * 9 / 16))}
+}
+@media (max-width:860px){
+  .offer-in{grid-template-columns:1fr}
+  .hero{align-items:center}
+  .hero h1{max-width:none}
+  .hero-grid{grid-template-columns:1fr; align-items:start}
+  .portrait{order:-1; width:min(52vw,190px); margin-left:0; margin-bottom:.4rem}
+  .chapter,.chapter.wide{grid-template-columns:1fr}
+  .stick{top:8vh; max-width:220px}
+  .chapter.wide .stick{max-width:100%}
+  .fact{grid-template-columns:1fr; gap:.15rem}
+}
+@media (max-width:700px){
+  .sheet{--ch:clamp(96px,15svh,150px); grid-template-columns:repeat(3,calc(var(--ch) * 9 / 16))}
+  .clap-stage{height:280vh}
+  .stage{height:250vh}
+}
+@media (prefers-reduced-motion:reduce){
+  .clap-stage{height:auto}
+  .clap-pin{position:relative; height:auto; min-height:70svh}
+}
+</style>
+
+<canvas id="grain"></canvas>
+
+<button class="snd" id="snd" type="button" aria-pressed="false"><i></i><span id="sndLabel">Включить звук</span></button>
+<audio id="snap" src="media/snap.mp3" preload="auto"></audio>
+<audio id="bgm" src="media/theme.mp3" loop preload="none"></audio>
+
+<header class="hero">
+  <div class="hero-bg">
+    <video src="media/scene-crew.mp4" poster="media/scene-crew.jpg" muted loop playsinline autoplay preload="auto"></video>
+  </div>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="mono">AI-креатор · Алматы</span>
+      <h1>Аружан снимает <em>без камеры</em></h1>
+      <p class="sub">Рекламные ролики для брендов — целиком на нейросетях. Без съёмочной группы, локаций и трёх недель ожидания. Русский и казахский.</p>
+      <div class="meta">
+        <div><span class="mono">В подборке</span><span class="big">13</span></div>
+        <div><span class="mono">Ниш</span><span class="big">9</span></div>
+        <div><span class="mono">ИИ-инструментов</span><span class="big">6+</span></div>
+        <div><span class="mono">Срок</span><span class="big">3–5 дней</span></div>
+      </div>
+      <div class="cue"><i></i><span class="mono">Крутите вниз</span></div>
+    </div>
+    <figure class="portrait">
+      <img src="media/aruzhan.jpg" alt="Аружан, AI-креатор" width="620" height="795">
+      <figcaption><span class="mono">Аружан</span><span class="mono">Алматы</span></figcaption>
+    </figure>
+  </div>
+</header>
+
+<section class="clap-stage" id="clapStage">
+  <div class="clap-pin">
+    <video id="clap" src="media/scene-clap.mp4" poster="media/scene-clap.jpg" muted playsinline preload="auto"></video>
+    <div class="clap-words">
+      <div class="line" data-line="0">
+        <div>
+          <h2>Съёмочной группы <em>не будет</em></h2>
+          <p>Ни площадки, ни света, ни актёров. Крутите дальше.</p>
+        </div>
+      </div>
+      <div class="line" data-line="1">
+        <div>
+          <h2>Только бриф <em>и кадр</em></h2>
+          <p>От задачи до готового ролика — три-пять дней.</p>
+        </div>
+      </div>
+      <div class="line" data-line="2">
+        <div>
+          <h2>Мотор</h2>
+          <p>Дальше — то, что уже вышло в рекламу.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="stage">
+  <div class="pin">
+    <div class="wrap lede">
+      <h2>Здесь тринадцать. <em>Съёмок — ноль</em></h2>
+      <p>Часть портфолио. Наведите на кадр — он оживёт, нажмите — откроется целиком, со звуком.</p>
+    </div>
+
+    <div class="wrap">
+      <div class="sheet" id="sheet">
+        <figure class="shot" data-x="-42" data-y="-50" data-r="-7" data-src="media/full/implant-city.mp4" data-title="Стоматология — импланты">
+          <span class="num">01</span>
+          <div class="frame"><video src="media/w-implant-city.mp4" poster="media/w-implant-city.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Импланты</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="46" data-y="34" data-r="5" data-src="media/full/neurolab.mp4" data-title="Нейрохирургия — «Вам назначили операцию?»">
+          <span class="num">02</span>
+          <div class="frame"><video src="media/w-neurolab.mp4" poster="media/w-neurolab.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Нейрохирургия</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="-28" data-y="54" data-r="8" data-src="media/full/kenwood.mp4" data-title="Kenwood — техника для кухни">
+          <span class="num">03</span>
+          <div class="frame"><video src="media/w-kenwood.mp4" poster="media/w-kenwood.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Kenwood</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="42" data-y="-44" data-r="-5" data-src="media/full/urumchi.mp4" data-title="Пекарня — хлеб">
+          <span class="num">04</span>
+          <div class="frame"><video src="media/w-urumchi.mp4" poster="media/w-urumchi.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Пекарня</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="-48" data-y="30" data-r="6" data-src="media/full/verstak.mp4" data-title="Верстак — мебель на заказ">
+          <span class="num">05</span>
+          <div class="frame"><video src="media/w-verstak.mp4" poster="media/w-verstak.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Мебель</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="32" data-y="-54" data-r="-8" data-src="media/full/darstroi.mp4" data-title="Строительство — утепление дома">
+          <span class="num">06</span>
+          <div class="frame"><video src="media/w-darstroi.mp4" poster="media/w-darstroi.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Утепление</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="-36" data-y="-32" data-r="7" data-src="media/full/kemelkaz.mp4" data-title="Недвижимость — ролик на казахском">
+          <span class="num">07</span>
+          <div class="frame"><video src="media/w-kemelkaz.mp4" poster="media/w-kemelkaz.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Дом · KZ</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="50" data-y="46" data-r="-6" data-src="media/full/qazned.mp4" data-title="Коммерческая недвижимость">
+          <span class="num">08</span>
+          <div class="frame"><video src="media/w-qazned.mp4" poster="media/w-qazned.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Коммерция</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="-44" data-y="20" data-r="-4" data-src="media/full/invest-taxi.mp4" data-title="Инвестиции в такси">
+          <span class="num">09</span>
+          <div class="frame"><video src="media/w-invest-taxi.mp4" poster="media/w-invest-taxi.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Инвестиции</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="38" data-y="52" data-r="7" data-src="media/full/odsoil.mp4" data-title="Автопарк — «Представь, ты снова стоишь в пробке»">
+          <span class="num">10</span>
+          <div class="frame"><video src="media/w-odsoil.mp4" poster="media/w-odsoil.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Автопарк</span><span>9:16</span></figcaption>
+        </figure>
+        <figure class="shot" data-x="-30" data-y="-42" data-r="6" data-src="media/full/acbt.mp4" data-title="Наука — «Наука, которая меняет будущее»">
+          <span class="num">11</span>
+          <div class="frame"><video src="media/w-acbt.mp4" poster="media/w-acbt.jpg" muted loop playsinline preload="none"></video></div>
+          <figcaption><span>Наука</span><span>9:16</span></figcaption>
+        </figure>
+      </div>
+
+      <div class="sheet-foot" id="sheetFoot">
+        <span class="mono">Контактный лист · часть работ · ещё две широких ниже</span>
+        <span class="mono">Съёмочных дней: 0</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="craft">
+  <div class="wrap">
+    <div class="craft-head">
+      <h2>Промпт пишут все. <em>Кадр ставят единицы</em></h2>
+      <span class="mono">Потяните за полоску</span>
+    </div>
+    <p class="lead">Нейросеть сама по себе выдаёт случайную красоту: свет каждый раз новый, герой меняет лицо, камера едет куда захочет. Ролик держится не на этом, а на четырёх вещах, которые задаются вручную до генерации.</p>
+
+    <div class="craft-grid">
+
+      <div class="craft-card">
+        <figure class="reveal" style="--p:52">
+          <img class="after" src="media/w-odsoil.jpg" alt="Кадр из ролика: вид от первого лица за рулём">
+          <div class="before">
+            <svg viewBox="0 0 300 400" role="img" aria-label="Схема: заданный путь движения камеры">
+              <rect width="300" height="400" fill="#0E0A0E"/>
+              <g stroke="#3A2C39" stroke-width="1">
+                <path d="M30 60 H270 M30 340 H270 M30 60 V340 M270 60 V340"/>
+                <path d="M110 60 V340 M190 60 V340 M30 153 H270 M30 247 H270" stroke-dasharray="3 6"/>
+              </g>
+              <path d="M60 300 C 110 250, 130 160, 220 120" fill="none" stroke="#F2846B" stroke-width="2" stroke-dasharray="7 6"/>
+              <g fill="#F2846B">
+                <circle cx="60" cy="300" r="4"/><circle cx="121" cy="228" r="3"/>
+                <circle cx="163" cy="170" r="3"/><circle cx="220" cy="120" r="4"/>
+              </g>
+              <path d="M214 111 L232 118 L216 129 Z" fill="#F2846B"/>
+              <g fill="none" stroke="#7FB8AE" stroke-width="1.6">
+                <rect x="42" y="286" width="26" height="19" rx="2"/>
+                <path d="M68 292 l12 -6 v17 l-12 -6 z"/>
+              </g>
+              <text x="30" y="374" fill="#A2939E" font-family="ui-monospace,monospace" font-size="11" letter-spacing="1.6">ПУТЬ КАМЕРЫ ЗАДАН</text>
+              <text x="30" y="44" fill="#6E6270" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.6">01 / ДВИЖЕНИЕ</text>
+            </svg>
+          </div>
+          <span class="tag">Схема</span><span class="tag res">Кадр</span>
+          <span class="bar"></span>
+          <input type="range" min="0" max="100" value="52" aria-label="Показать схему или готовый кадр">
+        </figure>
+        <h3>Движение задаётся, а не выпрашивается</h3>
+        <p>Ход камеры берётся с ролика-донора и повторяется на нужном кадре. Камера едет туда, куда написано в сценарии.</p>
+      </div>
+
+      <div class="craft-card">
+        <figure class="reveal" style="--p:52">
+          <img class="after" src="media/w-kemelkaz.jpg" alt="Кадр из ролика: дом вечером">
+          <div class="before">
+            <svg viewBox="0 0 300 400" role="img" aria-label="Схема: разбор кадра по планам глубины">
+              <rect width="300" height="400" fill="#0E0A0E"/>
+              <rect x="30" y="70" width="240" height="80" fill="#221A22"/>
+              <rect x="30" y="150" width="240" height="90" fill="#3A2C39"/>
+              <rect x="30" y="240" width="240" height="100" fill="#6E6270"/>
+              <g fill="none" stroke="#0E0A0E" stroke-width="1.4">
+                <path d="M96 240 v100 M150 240 v100 M204 240 v100"/>
+              </g>
+              <path d="M132 196 h36 v44 h-36 z" fill="#F2846B"/>
+              <circle cx="150" cy="182" r="13" fill="#F2846B"/>
+              <g stroke="#7FB8AE" stroke-width="1.2" fill="none">
+                <path d="M278 70 v70 M278 150 v80 M278 240 v100"/>
+                <path d="M274 70 h8 M274 140 h8 M274 150 h8 M274 230 h8 M274 240 h8 M274 340 h8"/>
+              </g>
+              <text x="30" y="374" fill="#A2939E" font-family="ui-monospace,monospace" font-size="11" letter-spacing="1.6">ТРИ ПЛАНА ГЛУБИНЫ</text>
+              <text x="30" y="44" fill="#6E6270" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.6">02 / КОМПОЗИЦИЯ</text>
+            </svg>
+          </div>
+          <span class="tag">Схема</span><span class="tag res">Кадр</span>
+          <span class="bar"></span>
+          <input type="range" min="0" max="100" value="52" aria-label="Показать схему или готовый кадр">
+        </figure>
+        <h3>Чёрно-белая заготовка держит пространство</h3>
+        <p>Темнее — дальше, светлее — ближе. По такой карте модель понимает, что стоит впереди, что позади и сколько между ними воздуха.</p>
+      </div>
+
+      <div class="craft-card">
+        <figure class="reveal" style="--p:52">
+          <img class="after" src="media/w-kenwood.jpg" alt="Кадр из ролика: кухня, руки в тесте">
+          <div class="before">
+            <svg viewBox="0 0 300 400" role="img" aria-label="Схема: постановка света в кадре">
+              <rect width="300" height="400" fill="#0E0A0E"/>
+              <defs>
+                <radialGradient id="lg" cx="22%" cy="24%" r="72%">
+                  <stop offset="0" stop-color="#F2846B" stop-opacity=".42"/>
+                  <stop offset="1" stop-color="#F2846B" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <rect x="30" y="60" width="240" height="280" fill="url(#lg)"/>
+              <rect x="30" y="60" width="240" height="280" fill="none" stroke="#3A2C39"/>
+              <circle cx="82" cy="128" r="9" fill="#F2846B"/>
+              <g stroke="#F2846B" stroke-width="1.3" opacity=".8">
+                <path d="M92 136 L166 206 M92 122 L182 150 M90 146 L142 236"/>
+              </g>
+              <path d="M186 214 h34 v92 h-34 z" fill="#221A22" stroke="#6E6270"/>
+              <circle cx="203" cy="198" r="15" fill="#221A22" stroke="#6E6270"/>
+              <path d="M220 214 L262 306 L220 306 Z" fill="#3A2C39" opacity=".7"/>
+              <path d="M82 128 A 62 62 0 0 1 144 190" fill="none" stroke="#7FB8AE" stroke-width="1.2" stroke-dasharray="3 5"/>
+              <text x="112" y="118" fill="#7FB8AE" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.4">45°</text>
+              <text x="30" y="374" fill="#A2939E" font-family="ui-monospace,monospace" font-size="11" letter-spacing="1.6">ОДИН ИСТОЧНИК НА РОЛИК</text>
+              <text x="30" y="44" fill="#6E6270" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.6">03 / СВЕТ</text>
+            </svg>
+          </div>
+          <span class="tag">Схема</span><span class="tag res">Кадр</span>
+          <span class="bar"></span>
+          <input type="range" min="0" max="100" value="52" aria-label="Показать схему или готовый кадр">
+        </figure>
+        <h3>Свет ставится один раз на весь ролик</h3>
+        <p>Откуда бьёт источник и какая у него температура — задаётся до генерации. Иначе в каждой сцене своё солнце и склейка рассыпается.</p>
+      </div>
+
+      <div class="craft-card">
+        <figure class="reveal" style="--p:52">
+          <img class="after" src="media/w-implant-city.jpg" alt="Кадр из ролика: лица героев до и после">
+          <div class="before">
+            <svg viewBox="0 0 300 400" role="img" aria-label="Схема: один и тот же герой в трёх сценах">
+              <rect width="300" height="400" fill="#0E0A0E"/>
+              <g>
+                <rect x="34" y="96" width="76" height="102" rx="4" fill="#221A22" stroke="#3A2C39"/>
+                <rect x="112" y="96" width="76" height="102" rx="4" fill="#221A22" stroke="#3A2C39"/>
+                <rect x="190" y="96" width="76" height="102" rx="4" fill="#221A22" stroke="#3A2C39"/>
+              </g>
+              <g fill="#F2846B">
+                <circle cx="72" cy="134" r="15"/><path d="M52 190 a20 24 0 0 1 40 0 z"/>
+                <circle cx="150" cy="134" r="15"/><path d="M130 190 a20 24 0 0 1 40 0 z"/>
+                <circle cx="228" cy="134" r="15"/><path d="M208 190 a20 24 0 0 1 40 0 z"/>
+              </g>
+              <path d="M72 224 H228" stroke="#7FB8AE" stroke-width="1.2" stroke-dasharray="4 5"/>
+              <g fill="#7FB8AE"><circle cx="72" cy="224" r="3"/><circle cx="150" cy="224" r="3"/><circle cx="228" cy="224" r="3"/></g>
+              <g fill="#6E6270" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.4">
+                <text x="60" y="252">СЦ 1</text><text x="138" y="252">СЦ 2</text><text x="216" y="252">СЦ 3</text>
+              </g>
+              <text x="30" y="374" fill="#A2939E" font-family="ui-monospace,monospace" font-size="11" letter-spacing="1.6">ОДНО ЛИЦО ОТ И ДО</text>
+              <text x="30" y="44" fill="#6E6270" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.6">04 / ГЕРОЙ</text>
+            </svg>
+          </div>
+          <span class="tag">Схема</span><span class="tag res">Кадр</span>
+          <span class="bar"></span>
+          <input type="range" min="0" max="100" value="52" aria-label="Показать схему или готовый кадр">
+        </figure>
+        <h3>Герой не меняет лицо между сценами</h3>
+        <p>Персонаж закрепляется отдельно, поэтому в тридцати секундах на экране один и тот же человек, а не трое похожих.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<main class="works">
+  <div class="wrap">
+    <div class="works-head">
+      <span class="mono">Крупным планом</span>
+      <span class="mono">03 работы</span>
+    </div>
+
+    <article class="chapter wide">
+      <div class="stick">
+        <div class="frame"><video src="media/w-electrolock-701.mp4" poster="media/w-electrolock-701.jpg" muted loop playsinline preload="none"></video></div>
+        <div class="cap"><span class="mono">Широкий формат 16:9</span><span class="mono">Смотреть целиком ↓</span></div>
+      </div>
+      <div class="chapter-body">
+        <span class="num">01 — Премиум</span>
+        <h2>Electrolock. Сейфы</h2>
+        <p>Реклама премиального бренда, снятая по всем правилам жанра: приглушённый свет, длинные планы, ни одного крупного логотипа. Горизонтальный формат — под сайт и YouTube.</p>
+        <p>Две сцены. Пара входит в гостиничный люкс. Мужская рука снимает часы и убирает их. <strong>Продаётся не замок, а спокойствие</strong> — про сам продукт в кадре почти ничего не сказано.</p>
+        <p class="quote">«Храните действительно ценное там, где оно под надёжной защитой».</p>
+        <p>Такой уровень картинки одной нейросетью не берётся. Кадры собираются в Midjourney и Nano Banana, оживают в Kling и Seedance 2.5, движение камеры доводится в Higgsfield, голос — ElevenLabs, финальная резкость — Topaz. <strong>Больше шести моделей в одном ролике</strong>: каждая делает то, что умеет лучше остальных.</p>
+        <dl class="facts">
+          <div class="fact"><dt>Формат</dt><dd>16:9, две версии по 33 и 38 секунд</dd></div>
+          <div class="fact"><dt>Что в кадре</dt><dd>Интерьер люкса, часы, крупные планы рук</dd></div>
+          <div class="fact"><dt>Инструменты</dt><dd>Midjourney, Nano Banana, Kling, Seedance 2.5, Higgsfield, ElevenLabs, Topaz</dd></div>
+          <div class="fact"><dt>Срок</dt><dd>3–5 дней от брифа до файла</dd></div>
+        </dl>
+      </div>
+    </article>
+
+    <article class="chapter">
+      <div class="stick">
+        <div class="frame"><video src="media/w-odsoil.mp4" poster="media/w-odsoil.jpg" muted loop playsinline preload="none"></video></div>
+        <div class="cap"><span class="mono">Дубль 02</span><span class="mono">9:16</span></div>
+      </div>
+      <div class="chapter-body">
+        <span class="num">02 — Авто</span>
+        <h2>ALA Cars. Новые машины</h2>
+        <p>Продают новые автомобили, но начинают не с них. Ролик открывается чужой болью: старая машина глохнет, нервы на пределе, а впереди ещё целый день.</p>
+        <p>Съёмка от первого лица — руки на руле, приборная панель, дорога за стеклом. Именно эти кадры дороже всего снимать по-настоящему: нужна машина сопровождения, крепления на капот, оператор рядом с водителем и дубли в живом трафике. <strong>Здесь не снято ни секунды.</strong></p>
+        <p class="quote">«Представь: ты снова стоишь в пробке. Нервы на пределе».</p>
+        <p>Сцена держится на движении: машина едет, руль поворачивается, за окном меняется город. Статичная картинка такое не вытянет — поэтому главную работу здесь делают видеомодели Kling и Seedance 2.5, а Higgsfield отвечает за то, чтобы камера вела себя как настоящая.</p>
+        <dl class="facts">
+          <div class="fact"><dt>Формат</dt><dd>9:16, вертикаль под ленту</dd></div>
+          <div class="fact"><dt>Приём</dt><dd>Сначала боль, потом машина</dd></div>
+          <div class="fact"><dt>Инструменты</dt><dd>Midjourney, Nano Banana, Kling, Seedance 2.5, Higgsfield, ElevenLabs</dd></div>
+          <div class="fact"><dt>Срок</dt><dd>3–5 дней от брифа до файла</dd></div>
+        </dl>
+      </div>
+    </article>
+
+    <article class="chapter">
+      <div class="stick">
+        <div class="frame"><video src="media/w-kenwood.mp4" poster="media/w-kenwood.jpg" muted loop playsinline preload="none"></video></div>
+        <div class="cap"><span class="mono">Дубль 03</span><span class="mono">9:16</span></div>
+      </div>
+      <div class="chapter-body">
+        <span class="num">03 — Бренд</span>
+        <h2>Kenwood. Техника для кухни</h2>
+        <p>Работа под международный бренд: своя кухня, своя героиня, своё утро. Живая съёмка означала бы локацию, реквизит, еду и food-стилиста на смену.</p>
+        <p>В кадре — <strong>тёплая домашняя кухня и руки в тесте</strong>. Героиня азиатской внешности: ролик делался под казахстанскую аудиторию, а не переозвучивался с чужого исходника.</p>
+        <p class="quote">«Готовите дома, но тесто, кремы…»</p>
+        <p>Еда — самый капризный материал: тесто должно тянуться, а не плыть, руки должны быть живыми. Поэтому кадр собирается по частям — картинка в Midjourney и Nano Banana, движение в Kling и Seedance 2.5, доводка резкости в Topaz.</p>
+        <dl class="facts">
+          <div class="fact"><dt>Формат</dt><dd>9:16, 32 секунды</dd></div>
+          <div class="fact"><dt>Приём</dt><dd>Локальная героиня вместо глобального стока</dd></div>
+          <div class="fact"><dt>Инструменты</dt><dd>Midjourney, Nano Banana, Kling, Seedance 2.5, Higgsfield, Topaz</dd></div>
+          <div class="fact"><dt>Срок</dt><dd>3–5 дней от брифа до файла</dd></div>
+        </dl>
+      </div>
+    </article>
+  </div>
+</main>
+
+<section class="offer">
+  <div class="wrap offer-in">
+    <div>
+      <h2>Сначала <em>раскадровка</em>, и она бесплатная</h2>
+      <p>Прежде чем говорить о деньгах, я собираю раскадровку по вашей задаче: что происходит в кадре, в каком порядке и чем это заканчивается. Вы смотрите на картинки, а не на обещания, и уже после этого решаете, работаем мы или нет.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><b>01</b><span><strong>Вы рассказываете задачу.</strong> Что продаём, кому и где это увидят.</span></div>
+      <div class="step"><b>02</b><span><strong>Я присылаю раскадровку.</strong> Бесплатно, без обязательств с вашей стороны.</span></div>
+      <div class="step"><b>03</b><span><strong>Вы решаете.</strong> Нравится — продолжаем. Не нравится — расходимся, раскадровка остаётся вам.</span></div>
+      <div class="step"><b>04</b><span><strong>Ролик за 3–5 дней.</strong> Готовый файл под нужный формат и площадку.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="outro">
+  <div class="outro-bg">
+    <video src="media/scene-light.mp4" poster="media/scene-light.jpg" muted loop playsinline preload="none"></video>
+  </div>
+  <div class="wrap">
+    <h2>Расскажите, <em>что снимаем</em></h2>
+    <p>Напишите пару слов о задаче — отвечу, что реально сделать на нейросетях, а что честнее снять камерой.</p>
+    <div class="links">
+      <a class="primary" href="https://wa.me/77474322718" target="_blank" rel="noopener">WhatsApp · +7 747 432 27 18</a>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><span class="mono">Контакты пока заглушки · подставим настоящие</span></div></footer>
+
+<div class="box" id="box" role="dialog" aria-modal="true" aria-label="Просмотр ролика">
+  <button class="close" id="boxClose" type="button">Закрыть · Esc</button>
+  <div>
+    <div class="bar"><h3 id="boxTitle">Ролик</h3><span class="mono">Полная версия со звуком</span></div>
+    <video id="boxVideo" controls playsinline></video>
+    
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function () {
+  /* Плёночное зерно — рисуем один раз */
+  var cv = document.getElementById('grain'), g = cv.getContext('2d'), GS = 170;
+  cv.width = GS; cv.height = GS;
+  var im = g.createImageData(GS, GS);
+  for (var i = 0; i < im.data.length; i += 4) {
+    var v = 120 + Math.random() * 135;
+    im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+  cv.style.width = '100%'; cv.style.height = '100%'; cv.style.imageRendering = 'pixelated';
+
+  /* Шторка «схема → кадр» */
+  document.querySelectorAll('.reveal').forEach(function (fig) {
+    var range = fig.querySelector('input');
+    var set = function () { fig.style.setProperty('--p', range.value); };
+    range.addEventListener('input', set);
+    set();
+  });
+
+  /* Звук: включается по нажатию — браузеры иначе не пускают */
+  var snd = document.getElementById('snd'), sndLabel = document.getElementById('sndLabel');
+  var bgm = document.getElementById('bgm'), snap = document.getElementById('snap');
+  var sound = false;
+  bgm.volume = 0.18; snap.volume = 0.85;
+  snd.addEventListener('click', function () {
+    sound = !sound;
+    snd.setAttribute('aria-pressed', String(sound));
+    sndLabel.textContent = sound ? 'Звук включён' : 'Включить звук';
+    if (sound) {
+      bgm.preload = 'auto';
+      var pr = bgm.play(); if (pr && pr.catch) pr.catch(function () {});
+    } else { bgm.pause(); }
+  });
+  function playSnap() {
+    if (!sound) return;
+    try { snap.currentTime = 0; var pr = snap.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {}
+  }
+
+  /* Ролики играют только пока видны — иначе телефон греется */
+  var seen = new IntersectionObserver(function (rows) {
+    rows.forEach(function (r) {
+      var v = r.target;
+      if (r.isIntersecting) {
+        if (v.preload === 'none') v.preload = 'auto';
+        var p = v.play(); if (p && p.catch) p.catch(function () {});
+      } else { v.pause(); }
+    });
+  }, { rootMargin: '120px', threshold: 0.15 });
+  document.querySelectorAll('.shot video, .stick video, .outro-bg video').forEach(function (v) { seen.observe(v); });
+
+  /* Просмотр ролика */
+  var box = document.getElementById('box'), bv = document.getElementById('boxVideo'), bt = document.getElementById('boxTitle');
+  function openBox(src, title) {
+    bv.src = src; bt.textContent = title; box.setAttribute('open', '');
+    bv.muted = false; bv.currentTime = 0;
+    if (sound) bgm.volume = 0.05;
+    var p = bv.play(); if (p && p.catch) p.catch(function () {});
+  }
+  function closeBox() { box.removeAttribute('open'); bv.pause(); bv.removeAttribute('src'); bv.load(); bgm.volume = 0.18; }
+  document.querySelectorAll('.shot').forEach(function (s) {
+    s.addEventListener('click', function () { openBox(s.dataset.src, s.dataset.title); });
+  });
+  document.getElementById('boxClose').addEventListener('click', closeBox);
+  box.addEventListener('click', function (e) { if (e.target === box) closeBox(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeBox(); });
+  document.querySelectorAll('[data-todo]').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); });
+  });
+
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!window.gsap || calm) return;
+  gsap.registerPlugin(ScrollTrigger);
+  var narrow = window.matchMedia('(max-width: 700px)').matches;
+
+  /* Хлопушка: скролл перематывает ролик кадр за кадром */
+  var clap = document.getElementById('clap');
+  var head = { t: 0 };
+  function wireClap() {
+    var dur = clap.duration;
+    if (!dur || !isFinite(dur)) return;
+    ScrollTrigger.create({
+      trigger: '#clapStage', start: 'top top', end: 'bottom bottom', scrub: 0.4,
+      onUpdate: function (self) {
+        gsap.to(head, {
+          t: self.progress * (dur - 0.05), duration: 0.25, overwrite: true, ease: 'none',
+          onUpdate: function () { if (clap.readyState >= 2) clap.currentTime = head.t; }
+        });
+      }
+    });
+    ScrollTrigger.refresh();
+  }
+  if (clap.readyState >= 1) wireClap(); else clap.addEventListener('loadedmetadata', wireClap);
+
+  /* Реплики сменяются по ходу перемотки */
+  var lines = gsap.utils.toArray('.clap-words .line');
+  gsap.set(lines, { opacity: 0 }); gsap.set(lines[0], { opacity: 1 });
+  var shown = 0, snapped = false;
+  ScrollTrigger.create({
+    trigger: '#clapStage', start: 'top top', end: 'bottom bottom', scrub: true,
+    onUpdate: function (self) {
+      if (self.progress >= 0.455 && !snapped) { snapped = true; playSnap(); }
+      if (self.progress < 0.40) snapped = false;
+      var n = self.progress < 0.34 ? 0 : self.progress < 0.72 ? 1 : 2;
+      if (n === shown) return;
+      gsap.to(lines[shown], { opacity: 0, duration: 0.3 });
+      gsap.to(lines[n], { opacity: 1, duration: 0.4 });
+      shown = n;
+    }
+  });
+
+  /* Контактный лист: кадры вразнобой встают в сетку */
+  var spread = narrow ? 0.5 : 1;
+  var tl = gsap.timeline({ scrollTrigger: { trigger: '#stage', start: 'top top', end: 'bottom bottom', scrub: 0.5 } });
+  gsap.utils.toArray('.shot').forEach(function (el, i) {
+    gsap.set(el, {
+      xPercent: parseFloat(el.dataset.x) * spread,
+      yPercent: parseFloat(el.dataset.y) * spread,
+      rotate: parseFloat(el.dataset.r) * spread,
+      scale: 0.86, zIndex: 12 - i
+    });
+    tl.to(el, { xPercent: 0, yPercent: 0, rotate: 0, scale: 1, ease: 'power2.inOut' }, i * 0.025);
+  });
+  gsap.set('#sheetFoot', { opacity: 0 });
+  tl.to('#sheetFoot', { opacity: 1, ease: 'none', duration: 0.15 }, 0.72);
+
+  /* Липкая карточка главы чуть проворачивается */
+  gsap.utils.toArray('.chapter').forEach(function (ch) {
+    var f = ch.querySelector('.stick .frame');
+    var deep = ch.classList.contains('wide') ? 5 : 11;
+    gsap.fromTo(f,
+      { rotateY: narrow ? -4 : -deep, rotateX: 1.5, scale: 0.975 },
+      { rotateY: narrow ? 4 : deep, rotateX: -1.5, scale: 1, ease: 'none',
+        scrollTrigger: { trigger: ch, start: 'top 80%', end: 'bottom 20%', scrub: 0.6 } });
+  });
+
+  gsap.from('.hero h1', { y: 24, opacity: 0, duration: 0.9, ease: 'power2.out' });
+  gsap.utils.toArray('.chapter-body').forEach(function (el) {
+    gsap.from(el.children, {
+      scrollTrigger: { trigger: el, start: 'top 82%' },
+      y: 26, opacity: 0, duration: 0.6, stagger: 0.07, ease: 'power2.out'
+    });
+  });
+})();
+</script>
