@@ -238,7 +238,8 @@ footer{position:relative; z-index:1; padding-bottom:3rem}
   .hero-grid{grid-template-columns:1fr; align-items:start}
   .portrait{order:-1; width:min(52vw,190px); margin-left:0; margin-bottom:.4rem}
   .chapter,.chapter.wide{grid-template-columns:1fr}
-  .stick{top:8vh; max-width:220px}
+  /* В одну колонку липкое видео не работает: текст наезжает на него */
+  .stick{position:static; max-width:260px}
   .chapter.wide .stick{max-width:100%}
   .fact{grid-template-columns:1fr; gap:.15rem}
 }
@@ -251,6 +252,9 @@ footer{position:relative; z-index:1; padding-bottom:3rem}
   .shot figcaption{font-size:.58rem; padding-top:.5rem}
   .shot .num{font-size:.58rem}
   .clap-stage{height:280vh}
+  .snd{top:.7rem; right:.7rem; padding:.5rem .7rem}
+  .snd span{display:none}
+  .snd::after{content:"Звук"}
   .meta{gap:1.1rem 1.7rem}
   .meta .big{font-size:1.45rem}
   .craft-grid{gap:1.6rem}
@@ -701,7 +705,25 @@ footer{position:relative; z-index:1; padding-bottom:3rem}
       } else { v.pause(); }
     });
   }, { rootMargin: '120px', threshold: 0.15 });
-  document.querySelectorAll('.shot video, .stick video, .outro-bg video').forEach(function (v) { seen.observe(v); });
+  document.querySelectorAll('.hero-bg video, .shot video, .stick video, .outro-bg video').forEach(function (v) { seen.observe(v); });
+
+  /* iPhone в режиме энергосбережения не запускает видео сам.
+     После первого касания пробуем ещё раз — тогда браузер разрешает. */
+  function kick() {
+    document.querySelectorAll('video').forEach(function (v) {
+      if (v.closest('.box')) return;
+      var r = v.getBoundingClientRect();
+      if (r.bottom < -200 || r.top > window.innerHeight + 200) return;
+      if (v.paused && v.id !== 'clap') {
+        if (v.preload === 'none') v.preload = 'auto';
+        var pr = v.play(); if (pr && pr.catch) pr.catch(function () {});
+      }
+    });
+  }
+  ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(function (ev) {
+    window.addEventListener(ev, kick, { passive: true });
+  });
+  window.addEventListener('scroll', kick, { passive: true, once: true });
 
   /* Просмотр ролика */
   var box = document.getElementById('box'), bv = document.getElementById('boxVideo'), bt = document.getElementById('boxTitle');
