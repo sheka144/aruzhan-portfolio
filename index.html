@@ -1,4 +1,22 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Аружан без камеры</title>
+<meta name="description" content="Рекламные ролики на нейросетях: реклама, тизеры и контент для брендов. Без съёмочной группы и локаций, срок 3–5 дней. Раскадровка бесплатно.">
+<meta name="theme-color" content="#120C12">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="Аружан · AI-креатор">
+<meta property="og:title" content="Аружан снимает без камеры">
+<meta property="og:description" content="Рекламные ролики для брендов целиком на нейросетях. Раскадровка бесплатно, ролик за 3–5 дней.">
+<meta property="og:url" content="https://sheka144.github.io/aruzhan-portfolio/">
+<meta property="og:image" content="https://sheka144.github.io/aruzhan-portfolio/media/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23120C12'/%3E%3Cpath d='M7 11h18v12H7z' fill='none' stroke='%23F2846B' stroke-width='2'/%3E%3Cpath d='M7 11l18-3v4' fill='%23F2846B'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap">
@@ -225,15 +243,26 @@ footer{position:relative; z-index:1; padding-bottom:3rem}
   .fact{grid-template-columns:1fr; gap:.15rem}
 }
 @media (max-width:700px){
-  .sheet{--ch:clamp(96px,15svh,150px); grid-template-columns:repeat(3,calc(var(--ch) * 9 / 16))}
+  /* На телефоне лист не прилипает: две крупные колонки, сборка при въезде в экран */
+  .stage{height:auto}
+  .pin{position:static; min-height:0; padding:clamp(2.6rem,9vw,3.6rem) 0}
+  .sheet{grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem; justify-content:stretch}
+  .sheet .frame{height:auto; aspect-ratio:9/16}
+  .shot figcaption{font-size:.58rem; padding-top:.5rem}
+  .shot .num{font-size:.58rem}
   .clap-stage{height:280vh}
-  .stage{height:250vh}
+  .meta{gap:1.1rem 1.7rem}
+  .meta .big{font-size:1.45rem}
+  .craft-grid{gap:1.6rem}
+  .box .close{top:auto; bottom:1rem; right:50%; transform:translateX(50%)}
 }
 @media (prefers-reduced-motion:reduce){
   .clap-stage{height:auto}
   .clap-pin{position:relative; height:auto; min-height:70svh}
 }
 </style>
+</head>
+<body>
 
 <canvas id="grain"></canvas>
 
@@ -735,8 +764,12 @@ footer{position:relative; z-index:1; padding-bottom:3rem}
   });
 
   /* Контактный лист: кадры вразнобой встают в сетку */
-  var spread = narrow ? 0.5 : 1;
-  var tl = gsap.timeline({ scrollTrigger: { trigger: '#stage', start: 'top top', end: 'bottom bottom', scrub: 0.5 } });
+  var spread = narrow ? 0.42 : 1;
+  // На телефоне лист не прилипает — сборка привязана к самой сетке
+  var sheetST = narrow
+    ? { trigger: '#sheet', start: 'top 92%', end: 'top 22%', scrub: 0.5 }
+    : { trigger: '#stage', start: 'top top', end: 'bottom bottom', scrub: 0.5 };
+  var tl = gsap.timeline({ scrollTrigger: sheetST });
   gsap.utils.toArray('.shot').forEach(function (el, i) {
     gsap.set(el, {
       xPercent: parseFloat(el.dataset.x) * spread,
@@ -768,3 +801,5 @@ footer{position:relative; z-index:1; padding-bottom:3rem}
   });
 })();
 </script>
+</body>
+</html>
